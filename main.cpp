@@ -7,6 +7,7 @@
 
 using namespace std;
 
+//imprime o menu podendo ou não imprimir as opções
 void imprimeMenu(bool tudo=true)
 {
     system("cls");
@@ -27,13 +28,14 @@ void imprimeMenu(bool tudo=true)
         cout << "   2. Mover valor da pilha para uma fila sequencial" << endl;
         cout << "   3. Consultar o valor do topo da pilha e da fila" << endl;
         cout << "   4. Remover valor da fila" << endl;
+        cout << "   5. Imprimir valores da fila" << endl;
         cout << "   0. Sair" << endl;
          cout << "==============================================================================================" << endl;
         cout << ">>";
     }
 }
 
-int lerEntrada(char* print)
+int lerEntrada(const char* print)
 {
     int input = -1;
     bool valid= false;
@@ -78,9 +80,20 @@ public:
 
 class Fila
 {
-    int fila[TAM_FILA];
-    int elementos = 0;
+    int *fila;
+    int elementos;
+    int tam_fila;
+
 public:
+    Fila(int _tam_fila)
+    {
+        tam_fila = _tam_fila;
+        fila = new int[tam_fila];
+        elementos = 0;
+    }
+    ~Fila(){
+        delete fila;
+    }
     int getElementos()
     {
         return elementos;
@@ -93,21 +106,27 @@ public:
 
     int adicionarElemento(int valor)
     {
-        if(elementos <= TAM_FILA)
+        if(elementos < tam_fila)
             fila[elementos++] = valor;
         else
             return 0;
         return 1;
     }
 
-    int removerElemento()
+    void removerElemento()
     {
-        if(elementos != 0)
-        {
-            elementos--;
-            return 1;
-        }
-        return 0;
+        //reagrupa, remove o primeiro elemento
+        for(int i=0;i<(elementos-1);i++)
+            fila[i] = fila[i+1];
+        elementos--;
+    }
+
+    void imprimirValores()
+    {
+        cout << " Valores da fila - " << elementos << "/" << tam_fila << " Elementos" <<  endl;
+        for(int i=0;i<elementos;i++)
+            cout << i+1 << " - " << fila[i] << endl;
+        system("pause");
     }
 };
 
@@ -128,6 +147,7 @@ void moverValorPilha(Valor** topo, Fila** fila)
 {
     imprimeMenu(false);
     cout << " 2. Mover valor da pilha para uma fila sequencial" << endl;
+    //Se a pilha não esta vazia
     if((*topo) != NULL)
     {
         // Se a fila não está cheia
@@ -162,7 +182,7 @@ void consultarElementos(Valor** topo, Fila** fila)
         cout << "   Pilha vazia!" << endl;
 
     if((*fila)->getElementos() != 0)
-        cout << "   Topo da fila: " << (*fila)->retornaElemento((*fila)->getElementos()-1) << endl;
+        cout << "   Primeiro da fila: " << (*fila)->retornaElemento(0) << endl;
     else
         cout << "   Fila vazia!" << endl;
 
@@ -173,18 +193,22 @@ void removerElementoFila(Fila** fila)
 {
     imprimeMenu(false);
     cout << " 4. Remover valor da fila" << endl;
-    if((*fila)->removerElemento())
-        cout << "   Valor removido: " << (*fila)->retornaElemento((*fila)->getElementos()) << endl;
+    if((*fila)->getElementos()){
+        cout << "   Valor removido: " << (*fila)->retornaElemento(0) << endl;
+        (*fila)->removerElemento();
+    }
     else
         cout << "   Fila vazia, nenhum elemento removido!" << endl;
 
     system("pause");
 }
 
+
+
 int main()
 {
     Valor* topo_pilha = NULL;
-    Fila* fila = new Fila();
+    Fila* fila = new Fila(TAM_FILA);
     char ent;
 
     setlocale(LC_ALL, "Portuguese");
@@ -214,13 +238,19 @@ int main()
             break;
         /// Remover valor da fila
         case '4':
-            imprimeMenu(false);
             removerElementoFila(&fila);
+            break;
+        /// Imprimir valores da fila
+        case '5':
+            imprimeMenu(false);
+            fila->imprimirValores();
             break;
         /// Entrada inválida
         default:
             break;
         }
     }
+
+    delete fila;
     return 0;
 }
